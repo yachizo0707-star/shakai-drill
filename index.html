@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="社会ドリル">
+<meta name="theme-color" content="#1a1a2e">
+<title>社会ドリル</title>
+<style>
+:root{
+  --bg:#1a1a2e;--surface:#16213e;--surface2:#0f3460;
+  --accent:#e94560;--accent2:#f5a623;--combo:#ffd54f;
+  --correct:#4caf50;--wrong:#e94560;
+  --text:#eaeaea;--text2:#8892a4;--radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Hiragino Sans','Hiragino Kaku Gothic ProN',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+.screen{display:none;flex-direction:column;min-height:100dvh;}
+.screen.active{display:flex;}
+
+/* HOME */
+#home{align-items:center;padding:24px 20px calc(24px + env(safe-area-inset-bottom));padding-top:calc(24px + env(safe-area-inset-top));gap:14px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.logo-area{text-align:center;}
+.logo-icon{font-size:48px;}
+.logo-title{font-size:24px;font-weight:700;color:var(--accent);margin-top:6px;letter-spacing:.04em;}
+.logo-sub{font-size:12px;color:var(--text2);margin-top:3px;}
+.stats-bar{display:flex;gap:10px;background:var(--surface);border-radius:var(--radius);padding:12px 14px;width:100%;max-width:380px;}
+.stat{flex:1;text-align:center;}
+.stat-val{font-size:18px;font-weight:700;color:var(--accent2);}
+.stat-label{font-size:10px;color:var(--text2);margin-top:2px;}
+
+/* 単元別グラフ */
+.stats-chart-card{background:var(--surface);border-radius:var(--radius);padding:14px;width:100%;max-width:380px;}
+.stats-chart-title{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.08em;margin-bottom:10px;}
+.unit-stat-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.unit-stat-row:last-child{margin-bottom:0;}
+.unit-stat-icon{font-size:16px;flex-shrink:0;}
+.unit-stat-info{flex:1;}
+.unit-stat-name{font-size:11px;font-weight:600;margin-bottom:3px;}
+.unit-stat-bar-wrap{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;}
+.unit-stat-bar-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+.unit-stat-pct{font-size:11px;font-weight:700;color:var(--accent2);min-width:32px;text-align:right;}
+
+/* 苦手ピックアップ */
+.weak-card{background:var(--surface);border:1.5px solid var(--accent);border-radius:var(--radius);padding:12px 14px;width:100%;max-width:380px;display:none;cursor:pointer;-webkit-appearance:none;}
+.weak-card.visible{display:block;}
+.weak-card-header{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.weak-card-icon{font-size:18px;}
+.weak-card-title{font-size:13px;font-weight:700;color:var(--accent);}
+.weak-card-sub{font-size:11px;color:var(--text2);}
+.weak-card-count{font-size:11px;color:var(--accent);margin-top:4px;font-weight:600;}
+
+/* 復習ボタン */
+.review-home-btn{background:var(--surface);border:1.5px solid var(--accent2);border-radius:var(--radius);padding:12px 14px;display:none;align-items:center;gap:10px;cursor:pointer;text-align:left;width:100%;max-width:380px;-webkit-appearance:none;}
+.review-home-btn.visible{display:flex;}
+.review-home-icon{font-size:22px;flex-shrink:0;}
+.review-home-info{flex:1;}
+.review-home-title{font-size:14px;font-weight:700;color:var(--accent2);}
+.review-home-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+
+.section-label{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text2);align-self:flex-start;width:100%;max-width:380px;}
+.type-legend{display:flex;gap:8px;width:100%;max-width:380px;}
+.type-badge{flex:1;border-radius:8px;padding:8px 6px;text-align:center;font-size:10px;font-weight:700;}
+.type-blank{background:rgba(233,69,96,.15);border:1.5px solid var(--accent);color:var(--accent);}
+.type-def{background:rgba(245,166,35,.15);border:1.5px solid var(--accent2);color:var(--accent2);}
+.unit-list{display:flex;flex-direction:column;gap:8px;width:100%;max-width:380px;}
+.unit-btn{background:var(--surface);border:none;border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left;-webkit-appearance:none;transition:background .15s;}
+.unit-btn:active{background:var(--surface2);}
+.unit-icon{font-size:24px;flex-shrink:0;}
+.unit-info{flex:1;}
+.unit-name{font-size:14px;font-weight:600;}
+.unit-count{font-size:11px;color:var(--text2);margin-top:2px;}
+.unit-arrow{font-size:18px;color:var(--text2);}
+
+/* LEVEL SELECT */
+#level-select{padding:20px;padding-top:calc(20px + env(safe-area-inset-top));gap:14px;overflow-y:auto;}
+.back-btn{background:none;border:none;color:var(--accent);font-size:15px;cursor:pointer;-webkit-appearance:none;padding:4px 0;align-self:flex-start;}
+.page-title{font-size:20px;font-weight:700;}
+.page-sub{font-size:12px;color:var(--text2);}
+/* タイムアタックトグル */
+.mode-toggle-row{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:10px;padding:12px 14px;}
+.mode-toggle-label{font-size:13px;font-weight:600;flex:1;}
+.mode-toggle-sub{font-size:10px;color:var(--text2);}
+.toggle-switch{position:relative;width:44px;height:26px;background:var(--surface2);border-radius:13px;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.toggle-switch.on{background:var(--accent);}
+.toggle-knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:white;transition:transform .2s;}
+.toggle-switch.on .toggle-knob{transform:translateX(18px);}
+.level-list{display:flex;flex-direction:column;gap:10px;}
+.level-btn{background:var(--surface);border:2px solid transparent;border-radius:var(--radius);padding:16px;cursor:pointer;text-align:left;-webkit-appearance:none;}
+.level-btn:active{border-color:var(--accent);}
+.level-badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;margin-bottom:6px;}
+.lv1 .level-badge{background:rgba(233,69,96,.2);color:#ff6b8a;}
+.lv2 .level-badge{background:rgba(245,166,35,.2);color:#f5a623;}
+.lv3 .level-badge{background:rgba(76,175,80,.2);color:#81c784;}
+.level-name{font-size:15px;font-weight:700;}
+.level-desc{font-size:11px;color:var(--text2);margin-top:3px;}
+.level-qcount{font-size:11px;color:var(--text2);margin-top:6px;}
+
+/* QUIZ */
+#quiz{overflow:hidden;}
+.quiz-header{background:var(--surface);padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;}
+.quiz-back{background:none;border:none;color:var(--accent);font-size:15px;cursor:pointer;-webkit-appearance:none;}
+.progress-wrap{flex:1;}
+.progress-text{font-size:11px;color:var(--text2);margin-bottom:3px;}
+.progress-bar{height:4px;background:var(--bg);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s ease;}
+.score-badge{background:var(--bg);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--accent2);}
+/* タイマーバー */
+.timer-bar-wrap{height:4px;background:var(--bg);display:none;}
+.timer-bar-fill{height:100%;background:var(--correct);transition:width .1s linear,background .3s;}
+/* コンボ */
+.combo-banner{display:none;text-align:center;font-size:13px;font-weight:700;color:var(--combo);padding:6px;background:rgba(255,213,79,.1);animation:comboPop .3s ease;}
+.combo-banner.show{display:block;}
+@keyframes comboPop{0%{transform:scale(.8);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.quiz-body{flex:1;padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:12px;}
+.question-card{background:var(--surface);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:8px;}
+.q-type-badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:99px;align-self:flex-start;}
+.q-type-blank{background:rgba(233,69,96,.2);color:#ff6b8a;}
+.q-type-def{background:rgba(245,166,35,.2);color:#f5a623;}
+.q-type-ex{background:rgba(76,175,80,.2);color:#81c784;}
+.q-type-map{background:rgba(100,150,255,.2);color:#7eb3ff;}
+.question-level{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--text2);}
+.question-text{font-size:15px;font-weight:600;line-height:1.7;}
+.svg-container{background:#f8f8f2;border-radius:10px;padding:8px;display:none;justify-content:center;align-items:center;margin-top:6px;}
+.svg-container.show{display:flex;}
+.svg-container svg{max-width:100%;height:auto;}
+.map-source{font-size:10px;color:var(--text2);text-align:right;padding-top:3px;display:none;}
+.map-source.show{display:block;}
+.textbook-quote{background:rgba(255,255,255,.04);border-left:3px solid var(--accent2);border-radius:0 6px 6px 0;padding:10px 12px;font-size:12px;line-height:1.7;color:var(--text2);display:none;}
+.textbook-quote.show{display:block;}
+.textbook-quote::before{content:'📖 教科書より';display:block;font-size:10px;font-weight:700;color:var(--accent2);margin-bottom:5px;}
+.timeout-msg{text-align:center;color:var(--wrong);font-size:13px;font-weight:700;display:none;}
+.timeout-msg.show{display:block;}
+.choices{display:flex;flex-direction:column;gap:8px;}
+.choice-btn{background:var(--surface);border:2px solid var(--surface2);border-radius:var(--radius);padding:13px 15px;font-size:16px;font-weight:500;color:var(--text);cursor:pointer;text-align:left;-webkit-appearance:none;transition:border-color .15s,background .15s;line-height:1.5;}
+.choice-btn:active:not(:disabled){border-color:var(--accent);}
+.choice-btn.correct{border-color:var(--correct);background:rgba(76,175,80,.12);color:var(--correct);}
+.choice-btn.wrong{border-color:var(--wrong);background:rgba(233,69,96,.12);color:var(--wrong);}
+.choice-btn:disabled{cursor:default;}
+.explanation-card{background:var(--surface2);border-radius:var(--radius);padding:14px;display:none;flex-direction:column;gap:8px;}
+.explanation-card.show{display:flex;}
+.exp-header{font-size:12px;font-weight:700;color:var(--accent2);}
+.exp-text{font-size:13px;line-height:1.7;}
+.next-btn{background:var(--accent);border:none;border-radius:var(--radius);padding:14px;font-size:15px;font-weight:700;color:white;cursor:pointer;-webkit-appearance:none;display:none;}
+.next-btn.show{display:block;}
+.next-btn:active{opacity:.85;}
+
+/* RESULT */
+#result{align-items:center;justify-content:center;padding:24px 20px calc(24px + env(safe-area-inset-bottom));padding-top:calc(24px + env(safe-area-inset-top));gap:16px;overflow-y:auto;}
+.result-emoji{font-size:56px;text-align:center;}
+.result-title{font-size:22px;font-weight:700;text-align:center;}
+.result-sub{font-size:13px;color:var(--text2);text-align:center;}
+.result-card{background:var(--surface);border-radius:var(--radius);padding:18px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px;}
+.result-score-big{text-align:center;font-size:40px;font-weight:700;color:var(--accent2);}
+.result-score-label{text-align:center;font-size:12px;color:var(--text2);margin-top:-8px;}
+.result-stats{display:flex;gap:8px;}
+.result-stat{flex:1;background:var(--bg);border-radius:10px;padding:10px;text-align:center;}
+.result-stat-val{font-size:16px;font-weight:700;}
+.result-stat-label{font-size:10px;color:var(--text2);margin-top:2px;}
+.correct-val{color:var(--correct);}
+.wrong-val{color:var(--wrong);}
+.combo-val{color:var(--combo);}
+.level-up-banner{background:linear-gradient(135deg,#e94560,#f5a623);border-radius:10px;padding:10px 14px;text-align:center;font-size:13px;font-weight:700;color:white;display:none;}
+.level-up-banner.show{display:block;}
+.result-btns{display:flex;flex-direction:column;gap:8px;width:100%;max-width:380px;}
+.review-btn{background:var(--accent2);border:none;border-radius:var(--radius);padding:13px;font-size:14px;font-weight:700;color:white;cursor:pointer;-webkit-appearance:none;}
+.retry-btn{background:var(--accent);border:none;border-radius:var(--radius);padding:13px;font-size:14px;font-weight:700;color:white;cursor:pointer;-webkit-appearance:none;}
+.home-btn{background:var(--surface);border:none;border-radius:var(--radius);padding:13px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;-webkit-appearance:none;}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="home" class="screen active">
+  <div class="logo-area">
+    <div class="logo-icon">🗾</div>
+    <div class="logo-title">社会ドリル</div>
+    <div class="logo-sub">中学1年生 地理分野</div>
+  </div>
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-val" id="total-points">0</div><div class="stat-label">ポイント</div></div>
+    <div class="stat"><div class="stat-val" id="player-level">1</div><div class="stat-label">レベル</div></div>
+    <div class="stat"><div class="stat-val" id="total-correct">0</div><div class="stat-label">正解数</div></div>
+    <div class="stat"><div class="stat-val" id="max-combo-home">0</div><div class="stat-label">最大コンボ</div></div>
+  </div>
+
+  <div class="stats-chart-card">
+    <div class="stats-chart-title">📊 単元別 正答率</div>
+    <div class="unit-stat-row">
+      <span class="unit-stat-icon">🗺️</span>
+      <div class="unit-stat-info">
+        <div class="unit-stat-name">身近な地域</div>
+        <div class="unit-stat-bar-wrap"><div class="unit-stat-bar-fill" id="bar-0" style="width:0%;background:#e94560"></div></div>
+      </div>
+      <div class="unit-stat-pct" id="pct-0">-%</div>
+    </div>
+  </div>
+
+  <button class="weak-card" id="weak-card-btn">
+    <div class="weak-card-header"><span class="weak-card-icon">🎯</span><div><div class="weak-card-title">苦手問題ピックアップ</div><div class="weak-card-sub">間違えた回数が多い問題を集中練習</div></div></div>
+    <div class="weak-card-count" id="weak-count-text">10問 選抜</div>
+  </button>
+
+  <button class="review-home-btn" id="review-home-btn">
+    <span class="review-home-icon">📝</span>
+    <div class="review-home-info"><div class="review-home-title">まちがい復習</div><div class="review-home-sub"><span id="review-count">0</span>問 たまっています</div></div>
+    <span class="unit-arrow">›</span>
+  </button>
+
+  <div class="type-legend">
+    <div class="type-badge type-blank">🔵 穴埋め<br><span style="font-weight:400;font-size:10px">重要語句を選ぶ</span></div>
+    <div class="type-badge type-def">🟡 定義<br><span style="font-weight:400;font-size:10px">意味・説明を選ぶ</span></div>
+  </div>
+
+  <div class="section-label">単元を選ぼう</div>
+  <div class="unit-list">
+    <button class="unit-btn" data-unit="0">
+      <span class="unit-icon">🗺️</span>
+      <div class="unit-info"><div class="unit-name">身近な地域</div><div class="unit-count">全60問（穴埋め・定義・地図記号・地形図・P96〜P185）</div></div>
+      <span class="unit-arrow">›</span>
+    </button>
+  </div>
+</div>
+
+<!-- LEVEL SELECT -->
+<div id="level-select" class="screen">
+  <button class="back-btn" id="back-to-home">← もどる</button>
+  <div><div class="page-title" id="level-unit-title">身近な地域</div><div class="page-sub">難易度を選んでね</div></div>
+  <div class="mode-toggle-row">
+    <div><div class="mode-toggle-label">⏱ タイムアタック</div><div class="mode-toggle-sub">1問30秒制限・時間ボーナスあり</div></div>
+    <div class="toggle-switch" id="time-toggle"><div class="toggle-knob"></div></div>
+  </div>
+  <div class="level-list">
+    <button class="level-btn lv1" data-level="0">
+      <span class="level-badge">BASIC</span>
+      <div class="level-name">教科書の基本（穴埋め・定義）</div>
+      <div class="level-desc">P94・P95の重要語句を完全マスター</div>
+      <div class="level-qcount">24問</div>
+    </button>
+    <button class="level-btn lv2" data-level="1">
+      <span class="level-badge">STANDARD</span>
+      <div class="level-name">地図記号・練習問題</div>
+      <div class="level-desc">地図記号の識別・読図の基礎</div>
+      <div class="level-qcount">21問</div>
+    </button>
+    <button class="level-btn lv3" data-level="2">
+      <span class="level-badge">ADVANCED</span>
+      <div class="level-name">地形図の読図・応用</div>
+      <div class="level-desc">計算・読み取り・総合問題</div>
+      <div class="level-qcount">15問</div>
+    </button>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz" class="screen">
+  <div class="quiz-header">
+    <button class="quiz-back" id="quiz-back">✕</button>
+    <div class="progress-wrap">
+      <div class="progress-text" id="progress-text">1 / 10</div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="score-badge" id="quiz-score">0pt</div>
+  </div>
+  <div class="timer-bar-wrap" id="timer-bar-wrap"><div class="timer-bar-fill" id="timer-bar-fill" style="width:100%"></div></div>
+  <div class="combo-banner" id="combo-banner">🔥 3連続正解！</div>
+  <div class="quiz-body">
+    <div class="question-card">
+      <div id="q-type-badge" class="q-type-badge q-type-blank">🔵 穴埋め</div>
+      <div class="question-level" id="q-level">BASIC</div>
+      <div class="question-text" id="q-text"></div>
+      <div class="svg-container" id="svg-container"><div id="svg-content"></div></div>
+      <div class="map-source" id="map-source"></div>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div class="timeout-msg" id="timeout-msg">⏰ 時間切れ！</div>
+    <div class="textbook-quote" id="q-quote"></div>
+    <div class="explanation-card" id="explanation">
+      <div class="exp-header" id="exp-header">💡 解説</div>
+      <div class="exp-text" id="exp-text"></div>
+    </div>
+    <button class="next-btn" id="next-btn">次の問題へ →</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="result" class="screen">
+  <div class="result-emoji" id="result-emoji">🎉</div>
+  <div class="result-title" id="result-title">すばらしい！</div>
+  <div class="result-sub" id="result-sub">全問正解！</div>
+  <div class="result-card">
+    <div class="result-score-big" id="result-score">+50pt</div>
+    <div class="result-score-label">獲得ポイント</div>
+    <div class="result-stats">
+      <div class="result-stat"><div class="result-stat-val correct-val" id="r-correct">0</div><div class="result-stat-label">正解</div></div>
+      <div class="result-stat"><div class="result-stat-val wrong-val" id="r-wrong">0</div><div class="result-stat-label">不正解</div></div>
+      <div class="result-stat"><div class="result-stat-val" id="r-rate">0%</div><div class="result-stat-label">正答率</div></div>
+      <div class="result-stat"><div class="result-stat-val combo-val" id="r-combo">0</div><div class="result-stat-label">最大コンボ</div></div>
+    </div>
+    <div class="level-up-banner" id="level-up-banner">🎊 レベルアップ！ Lv.<span id="new-level">2</span> になった！</div>
+  </div>
+  <div class="result-btns">
+    <button class="review-btn" id="review-result-btn" style="display:none">📝 間違えた問題を復習する</button>
+    <button class="retry-btn" id="retry-btn">もう一度やる</button>
+    <button class="home-btn" id="home-btn-result">単元選択にもどる</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const CHIZU_KIGO = {
+  // 田：縦3本・横2本の格子（稲の切り株）
+  ta: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">田</text>
+    <line x1="15" y1="18" x2="15" y2="68" stroke="#222" stroke-width="2.5"/>
+    <line x1="40" y1="18" x2="40" y2="68" stroke="#222" stroke-width="2.5"/>
+    <line x1="65" y1="18" x2="65" y2="68" stroke="#222" stroke-width="2.5"/>
+    <line x1="15" y1="18" x2="65" y2="18" stroke="#222" stroke-width="2.5"/>
+    <line x1="15" y1="43" x2="65" y2="43" stroke="#222" stroke-width="2.5"/>
+    <line x1="15" y1="68" x2="65" y2="68" stroke="#222" stroke-width="2.5"/>
+  </svg>`,
+
+  // 畑：V字2つを横に並べた形（開いた双葉）
+  hata: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">畑</text>
+    <path d="M16,22 L28,55 L40,22" stroke="#222" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+    <path d="M40,22 L52,55 L64,22" stroke="#222" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+    <line x1="16" y1="65" x2="64" y2="65" stroke="#222" stroke-width="2.5"/>
+  </svg>`,
+
+  // 果樹園：○が規則正しく並ぶ（くだものの形）
+  kajuen: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">果樹園</text>
+    <circle cx="22" cy="30" r="8" stroke="#222" stroke-width="2" fill="none"/>
+    <circle cx="46" cy="30" r="8" stroke="#222" stroke-width="2" fill="none"/>
+    <circle cx="22" cy="58" r="8" stroke="#222" stroke-width="2" fill="none"/>
+    <circle cx="46" cy="58" r="8" stroke="#222" stroke-width="2" fill="none"/>
+    <circle cx="70" cy="44" r="8" stroke="#222" stroke-width="2" fill="none"/>
+  </svg>`,
+
+  // 茶畑：∵（点3つ）の形
+  chabatake: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">茶畑</text>
+    <circle cx="28" cy="32" r="5" fill="#222"/>
+    <circle cx="52" cy="32" r="5" fill="#222"/>
+    <circle cx="28" cy="56" r="5" fill="#222"/>
+    <circle cx="52" cy="56" r="5" fill="#222"/>
+    <circle cx="40" cy="44" r="5" fill="#222"/>
+  </svg>`,
+
+  // 広葉樹林：丸い葉（Q状）を2つ並べた形
+  kouyo: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">広葉樹林</text>
+    <circle cx="26" cy="34" r="13" stroke="#222" stroke-width="2.2" fill="none"/>
+    <line x1="26" y1="47" x2="26" y2="65" stroke="#222" stroke-width="2.2"/>
+    <circle cx="54" cy="34" r="13" stroke="#222" stroke-width="2.2" fill="none"/>
+    <line x1="54" y1="47" x2="54" y2="65" stroke="#222" stroke-width="2.2"/>
+  </svg>`,
+
+  // 針葉樹林：▲（とがった三角形）を2つ並べた形
+  shinyou: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">針葉樹林</text>
+    <polygon points="26,16 10,50 42,50" stroke="#222" stroke-width="2.2" fill="none"/>
+    <line x1="26" y1="50" x2="26" y2="68" stroke="#222" stroke-width="2.2"/>
+    <polygon points="54,26 38,60 70,60" stroke="#222" stroke-width="2.2" fill="none"/>
+    <line x1="54" y1="60" x2="54" y2="68" stroke="#222" stroke-width="2.2"/>
+  </svg>`,
+
+  // 荒地：不規則な線（ランダムな短線）
+  arechi: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">荒地</text>
+    <line x1="15" y1="30" x2="22" y2="22" stroke="#222" stroke-width="2"/>
+    <line x1="30" y1="35" x2="38" y2="25" stroke="#222" stroke-width="2"/>
+    <line x1="45" y1="28" x2="52" y2="20" stroke="#222" stroke-width="2"/>
+    <line x1="60" y1="33" x2="68" y2="23" stroke="#222" stroke-width="2"/>
+    <line x1="15" y1="55" x2="22" y2="47" stroke="#222" stroke-width="2"/>
+    <line x1="30" y1="60" x2="38" y2="50" stroke="#222" stroke-width="2"/>
+    <line x1="45" y1="53" x2="52" y2="45" stroke="#222" stroke-width="2"/>
+    <line x1="60" y1="58" x2="68" y2="48" stroke="#222" stroke-width="2"/>
+  </svg>`,
+
+  // 市役所：◎（二重丸）
+  shiyakusho: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">市役所</text>
+    <circle cx="40" cy="46" r="20" stroke="#222" stroke-width="2.5" fill="none"/>
+    <circle cx="40" cy="46" r="10" stroke="#222" stroke-width="2.5" fill="none"/>
+  </svg>`,
+
+  // 町・村役場：○（一重丸）
+  yakuba: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">町・村役場</text>
+    <circle cx="40" cy="46" r="20" stroke="#222" stroke-width="2.5" fill="none"/>
+  </svg>`,
+
+  // 警察署：×を○で囲んだ形
+  keisatsu: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">警察署</text>
+    <circle cx="40" cy="46" r="20" stroke="#222" stroke-width="2.5" fill="none"/>
+    <line x1="26" y1="32" x2="54" y2="60" stroke="#222" stroke-width="2.5"/>
+    <line x1="54" y1="32" x2="26" y2="60" stroke="#222" stroke-width="2.5"/>
+  </svg>`,
+
+  // 消防署：さすまたの形（Y字）
+  shobo: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">消防署</text>
+    <line x1="40" y1="50" x2="40" y2="70" stroke="#222" stroke-width="3"/>
+    <line x1="40" y1="50" x2="18" y2="22" stroke="#222" stroke-width="3"/>
+    <line x1="40" y1="50" x2="62" y2="22" stroke="#222" stroke-width="3"/>
+    <line x1="14" y1="18" x2="22" y2="26" stroke="#222" stroke-width="3"/>
+    <line x1="66" y1="18" x2="58" y2="26" stroke="#222" stroke-width="3"/>
+  </svg>`,
+
+  // 郵便局：〒マーク
+  yubin: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">郵便局</text>
+    <line x1="15" y1="28" x2="65" y2="28" stroke="#222" stroke-width="3"/>
+    <line x1="40" y1="28" x2="40" y2="68" stroke="#222" stroke-width="3"/>
+    <line x1="22" y1="38" x2="58" y2="38" stroke="#222" stroke-width="2.5"/>
+    <path d="M22,18 L40,28 L58,18" stroke="#222" stroke-width="2" fill="none"/>
+  </svg>`,
+
+  // 工場：歯車（6枚歯）
+  koji: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">工場</text>
+    <circle cx="40" cy="46" r="10" stroke="#222" stroke-width="2.2" fill="none"/>
+    <rect x="36" y="18" width="8" height="12" rx="2" fill="#222"/>
+    <rect x="36" y="62" width="8" height="12" rx="2" fill="#222"/>
+    <rect x="18" y="42" width="12" height="8" rx="2" fill="#222"/>
+    <rect x="62" y="42" width="12" height="8" rx="2" fill="#222"/>
+    <rect x="23" y="23" width="8" height="12" rx="2" fill="#222" transform="rotate(45 27 29)"/>
+    <rect x="53" y="23" width="8" height="12" rx="2" fill="#222" transform="rotate(-45 57 29)"/>
+    <rect x="23" y="57" width="8" height="12" rx="2" fill="#222" transform="rotate(-45 27 63)"/>
+    <rect x="53" y="57" width="8" height="12" rx="2" fill="#222" transform="rotate(45 57 63)"/>
+  </svg>`,
+
+  // 発電所・変電所：歯車＋稲妻
+  hatsuden: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">発電所</text>
+    <circle cx="40" cy="46" r="12" stroke="#222" stroke-width="2.2" fill="none"/>
+    <rect x="36" y="20" width="8" height="10" rx="1" fill="#222"/>
+    <rect x="36" y="62" width="8" height="10" rx="1" fill="#222"/>
+    <rect x="18" y="42" width="10" height="8" rx="1" fill="#222"/>
+    <rect x="62" y="42" width="10" height="8" rx="1" fill="#222"/>
+    <path d="M44,34 L36,46 L40,46 L36,58" stroke="#222" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+  </svg>`,
+
+  // 神社：鳥居（H字型に笠木が反った形）
+  jinja: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">神社</text>
+    <path d="M12,28 Q40,16 68,28" stroke="#222" stroke-width="3" fill="none"/>
+    <line x1="12" y1="34" x2="68" y2="34" stroke="#222" stroke-width="2.5"/>
+    <line x1="24" y1="34" x2="24" y2="70" stroke="#222" stroke-width="3"/>
+    <line x1="56" y1="34" x2="56" y2="70" stroke="#222" stroke-width="3"/>
+    <line x1="20" y1="50" x2="60" y2="50" stroke="#222" stroke-width="2"/>
+  </svg>`,
+
+  // 寺院：卍（卍形）
+  tera: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">寺院</text>
+    <line x1="40" y1="18" x2="40" y2="68" stroke="#222" stroke-width="3"/>
+    <line x1="16" y1="44" x2="64" y2="44" stroke="#222" stroke-width="3"/>
+    <line x1="40" y1="18" x2="52" y2="18" stroke="#222" stroke-width="3"/>
+    <line x1="64" y1="44" x2="64" y2="32" stroke="#222" stroke-width="3"/>
+    <line x1="40" y1="68" x2="28" y2="68" stroke="#222" stroke-width="3"/>
+    <line x1="16" y1="44" x2="16" y2="56" stroke="#222" stroke-width="3"/>
+  </svg>`,
+
+  // 小・中学校：文の字
+  gakko: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">小・中学校</text>
+    <text x="40" y="68" text-anchor="middle" font-size="50" font-weight="bold" fill="#222" font-family="serif">文</text>
+  </svg>`,
+
+  // 高等学校：文の字（小中と同じ）
+  kouko: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">高等学校</text>
+    <text x="40" y="68" text-anchor="middle" font-size="50" font-weight="bold" fill="#222" font-family="serif">文</text>
+  </svg>`,
+
+  // 図書館：開いた本の形
+  tosho: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">図書館</text>
+    <path d="M16,58 L16,26 Q40,20 40,26 L40,58 Q40,20 64,26 L64,58" stroke="#222" stroke-width="2.5" fill="none"/>
+    <line x1="40" y1="26" x2="40" y2="58" stroke="#222" stroke-width="2"/>
+  </svg>`,
+
+  // 博物館・美術館：開いた本（図書館と類似）
+  museum: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">博物館</text>
+    <path d="M18,60 L18,28 Q40,22 40,28 L40,60 Q40,22 62,28 L62,60" stroke="#222" stroke-width="2.5" fill="none"/>
+    <line x1="40" y1="28" x2="40" y2="60" stroke="#222" stroke-width="2"/>
+    <line x1="18" y1="60" x2="62" y2="60" stroke="#222" stroke-width="2.5"/>
+  </svg>`,
+
+  // 老人ホーム：人物＋屋根（家の中に人）
+  rojin: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">老人ホーム</text>
+    <path d="M40,18 L16,38 L20,38 L20,68 L60,68 L60,38 L64,38 Z" stroke="#222" stroke-width="2.5" fill="none"/>
+    <circle cx="40" cy="36" r="6" stroke="#222" stroke-width="2" fill="none"/>
+    <line x1="40" y1="42" x2="32" y2="58" stroke="#222" stroke-width="2"/>
+    <line x1="40" y1="42" x2="48" y2="58" stroke="#222" stroke-width="2"/>
+    <line x1="40" y1="50" x2="32" y2="44" stroke="#222" stroke-width="2"/>
+    <line x1="40" y1="50" x2="48" y2="44" stroke="#222" stroke-width="2"/>
+  </svg>`,
+
+  // 三角点：△
+  sankaku: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">三角点</text>
+    <polygon points="40,18 14,62 66,62" stroke="#222" stroke-width="2.5" fill="none"/>
+  </svg>`,
+
+  // 水準点：●（黒丸）
+  suijun: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">水準点</text>
+    <circle cx="40" cy="46" r="18" fill="#222"/>
+  </svg>`,
+
+  // 城跡：○に×（城の形）
+  shiroato: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">城跡</text>
+    <circle cx="40" cy="46" r="20" stroke="#222" stroke-width="2.5" fill="none"/>
+    <line x1="40" y1="26" x2="40" y2="66" stroke="#222" stroke-width="2.5"/>
+    <line x1="20" y1="46" x2="60" y2="46" stroke="#222" stroke-width="2.5"/>
+  </svg>`,
+
+  // 史跡・名勝・天然記念物：○●（塗りつぶし円）
+  shiseki: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">史跡・名勝</text>
+    <circle cx="30" cy="46" r="14" stroke="#222" stroke-width="2.5" fill="none"/>
+    <circle cx="52" cy="46" r="10" fill="#222"/>
+  </svg>`,
+
+  // 灯台：★（特徴的な塔）
+  todai: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">灯台</text>
+    <polygon points="40,18 44,32 58,32 46,40 50,54 40,46 30,54 34,40 22,32 36,32" stroke="#222" stroke-width="2" fill="#222"/>
+  </svg>`,
+
+  // 漁港：錨マーク
+  gyoko: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">漁港</text>
+    <line x1="40" y1="18" x2="40" y2="68" stroke="#222" stroke-width="3"/>
+    <line x1="24" y1="30" x2="56" y2="30" stroke="#222" stroke-width="2.5"/>
+    <circle cx="40" cy="24" r="6" stroke="#222" stroke-width="2.5" fill="none"/>
+    <path d="M20,68 Q20,54 40,68 Q60,54 60,68" stroke="#222" stroke-width="2.5" fill="none"/>
+  </svg>`,
+
+  // 病院：〒に似た赤十字マーク→実際は+マーク
+  byoin: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">病院</text>
+    <rect x="30" y="20" width="20" height="52" rx="3" stroke="#222" stroke-width="2.5" fill="none"/>
+    <rect x="14" y="36" width="52" height="20" rx="3" stroke="#222" stroke-width="2.5" fill="none"/>
+  </svg>`,
+
+  // 記念碑：縦棒＋横棒（十字）
+  kinenhi: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">記念碑</text>
+    <line x1="40" y1="18" x2="40" y2="68" stroke="#222" stroke-width="3"/>
+    <line x1="24" y1="32" x2="56" y2="32" stroke="#222" stroke-width="3"/>
+  </svg>`,
+
+  // 風力発電：風車マーク
+  fusha: `<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" fill="#fffff0" rx="4"/>
+    <text x="40" y="12" text-anchor="middle" font-size="9" fill="#666">風力発電</text>
+    <circle cx="40" cy="40" r="5" fill="#222"/>
+    <line x1="40" y1="40" x2="40" y2="70" stroke="#222" stroke-width="3"/>
+    <line x1="40" y1="35" x2="40" y2="16" stroke="#222" stroke-width="2.5"/>
+    <line x1="40" y1="35" x2="22" y2="48" stroke="#222" stroke-width="2.5"/>
+    <line x1="40" y1="35" x2="58" y2="48" stroke="#222" stroke-width="2.5"/>
+  </svg>`,
+};
+
+
+const CHIKEI_SVG = {
+  // 等高線の傾斜（急 vs ゆるやか）
+  slope: `<svg viewBox="0 0 300 200" width="285" height="190" xmlns="http://www.w3.org/2000/svg">
+    <rect width="300" height="200" fill="#f5f5e0" rx="6"/>
+    <text x="150" y="14" text-anchor="middle" font-size="11" fill="#555" font-weight="bold">等高線の模式図</text>
+    <line x1="148" y1="15" x2="148" y2="188" stroke="#aaa" stroke-width="1" stroke-dasharray="4,3"/>
+    <text x="60" y="185" text-anchor="middle" font-size="12" font-weight="bold" fill="#c0392b">X（急）</text>
+    <text x="220" y="185" text-anchor="middle" font-size="12" font-weight="bold" fill="#2980b9">Y（ゆるやか）</text>
+    <path d="M20,170 Q28,145 38,120 Q48,95 60,72 Q72,50 88,35" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <path d="M35,170 Q44,145 55,120 Q66,95 79,72 Q92,50 109,35" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <path d="M50,170 Q60,145 72,120 Q84,95 98,72 Q112,50 130,35" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <path d="M65,170 Q76,145 89,120 Q103,95 118,72 Q133,50 148,38" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <path d="M162,170 Q185,148 202,126 Q218,104 228,82 Q237,62 242,40" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <path d="M185,170 Q204,150 218,130 Q231,110 239,90 Q246,70 249,48" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <path d="M210,170 Q226,152 237,133 Q247,115 253,96 Q259,78 261,57" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <path d="M238,170 Q250,154 258,137 Q265,120 269,103 Q272,87 274,68" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <text x="60" y="95" text-anchor="middle" font-size="10" fill="#888">間隔が</text>
+    <text x="60" y="107" text-anchor="middle" font-size="10" fill="#888">せまい</text>
+    <text x="225" y="115" text-anchor="middle" font-size="10" fill="#888">間隔が</text>
+    <text x="225" y="127" text-anchor="middle" font-size="10" fill="#888">広い</text>
+  </svg>`,
+
+  // 扇状地の等高線（同心円弧状）
+  sensho: `<svg viewBox="0 0 300 200" width="285" height="190" xmlns="http://www.w3.org/2000/svg">
+    <rect width="300" height="200" fill="#f5f5e0" rx="6"/>
+    <text x="150" y="14" text-anchor="middle" font-size="11" fill="#555" font-weight="bold">扇状地の等高線（模式）</text>
+    <path d="M128,22 Q150,16 172,22" stroke="#8b6914" stroke-width="2" fill="none"/>
+    <path d="M108,42 Q150,30 192,42" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <path d="M80,70 Q150,52 220,70" stroke="#8b6914" stroke-width="1.6" fill="none"/>
+    <path d="M58,98 Q150,74 242,98" stroke="#8b6914" stroke-width="1.6" fill="none"/>
+    <path d="M38,128 Q150,96 262,128" stroke="#8b6914" stroke-width="1.6" fill="none"/>
+    <path d="M20,160 Q150,118 280,160" stroke="#8b6914" stroke-width="1.6" fill="none"/>
+    <path d="M150,16 Q148,50 150,70 Q152,90 150,110" stroke="#3399cc" stroke-width="2" fill="none"/>
+    <text x="150" y="34" text-anchor="middle" font-size="10" fill="#555" font-weight="bold">扇頂</text>
+    <text x="150" y="108" text-anchor="middle" font-size="10" fill="#555" font-weight="bold">扇央</text>
+    <text x="150" y="175" text-anchor="middle" font-size="10" fill="#555" font-weight="bold">扇端</text>
+  </svg>`,
+
+  // 三角州（等高線がほぼない平坦な地形）
+  sankakusu: `<svg viewBox="0 0 300 200" width="285" height="190" xmlns="http://www.w3.org/2000/svg">
+    <rect width="300" height="200" fill="#f5f5e0" rx="6"/>
+    <text x="150" y="14" text-anchor="middle" font-size="11" fill="#555" font-weight="bold">三角州（デルタ）の模式図</text>
+    <path d="M140,20 Q130,60 90,120 L210,120 Q170,60 160,20 Z" stroke="#3399cc" stroke-width="2" fill="#cceeff" opacity="0.5"/>
+    <path d="M150,20 L130,70 Q120,100 90,120" stroke="#3399cc" stroke-width="2" fill="none"/>
+    <path d="M150,20 L150,80 L150,120" stroke="#3399cc" stroke-width="2" fill="none"/>
+    <path d="M150,20 L170,70 Q180,100 210,120" stroke="#3399cc" stroke-width="2" fill="none"/>
+    <path d="M60,130 Q150,125 240,130" stroke="#8b6914" stroke-width="1.2" fill="none" stroke-dasharray="3,2"/>
+    <path d="M55,145 Q150,140 245,145" stroke="#8b6914" stroke-width="1.2" fill="none" stroke-dasharray="3,2"/>
+    <text x="150" y="100" text-anchor="middle" font-size="11" fill="#555">等高線がほぼない</text>
+    <text x="150" y="115" text-anchor="middle" font-size="11" fill="#555">平たんな土地</text>
+    <text x="150" y="170" text-anchor="middle" font-size="11" fill="#3399cc">海・湖</text>
+  </svg>`,
+
+  // 谷と尾根の等高線
+  tanione: `<svg viewBox="0 0 300 200" width="285" height="190" xmlns="http://www.w3.org/2000/svg">
+    <rect width="300" height="200" fill="#f5f5e0" rx="6"/>
+    <text x="150" y="14" text-anchor="middle" font-size="11" fill="#555" font-weight="bold">谷と尾根の等高線</text>
+    <!-- 左側：谷（等高線が高い方へくいこむ） -->
+    <path d="M20,50 Q50,70 50,100 Q50,130 20,150" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <path d="M45,50 Q65,68 65,100 Q65,132 45,150" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <path d="M70,50 Q80,68 80,100 Q80,132 70,150" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <text x="50" y="185" text-anchor="middle" font-size="11" font-weight="bold" fill="#c0392b">谷</text>
+    <text x="50" y="38" text-anchor="middle" font-size="10" fill="#555">（低い方へくいこむ）</text>
+    <line x1="150" y1="20" x2="150" y2="185" stroke="#aaa" stroke-width="1" stroke-dasharray="4,3"/>
+    <!-- 右側：尾根（等高線が低い方へ張り出す） -->
+    <path d="M280,50 Q250,70 250,100 Q250,130 280,150" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <path d="M255,50 Q235,68 235,100 Q235,132 255,150" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <path d="M230,50 Q220,68 220,100 Q220,132 230,150" stroke="#8b6914" stroke-width="1.8" fill="none"/>
+    <text x="250" y="185" text-anchor="middle" font-size="11" font-weight="bold" fill="#2980b9">尾根</text>
+    <text x="250" y="38" text-anchor="middle" font-size="10" fill="#555">（高い方へ張り出す）</text>
+  </svg>`,
+
+  // 石和地形図（扇状地・模式的）
+  ishiwa_map: `<svg viewBox="0 0 300 250" width="285" height="238" xmlns="http://www.w3.org/2000/svg">
+    <rect width="300" height="250" fill="#f5f5e0" rx="6"/>
+    <text x="150" y="14" text-anchor="middle" font-size="10" fill="#555" font-weight="bold">扇状地の地形図（模式）</text>
+    <!-- 扇状地の等高線 -->
+    <path d="M128,25 Q150,20 172,25" stroke="#8b6914" stroke-width="1.5" fill="none"/>
+    <text x="158" y="23" font-size="8" fill="#555">400</text>
+    <path d="M100,50 Q150,38 200,50" stroke="#8b6914" stroke-width="1.5" fill="none"/>
+    <text x="188" y="48" font-size="8" fill="#555">350</text>
+    <path d="M72,80 Q150,60 228,80" stroke="#8b6914" stroke-width="1.5" fill="none"/>
+    <text x="216" y="78" font-size="8" fill="#555">300</text>
+    <path d="M50,115 Q150,88 250,115" stroke="#8b6914" stroke-width="1.5" fill="none"/>
+    <text x="238" y="113" font-size="8" fill="#555">250</text>
+    <path d="M32,155 Q150,120 268,155" stroke="#8b6914" stroke-width="1.5" fill="none"/>
+    <text x="256" y="153" font-size="8" fill="#555">200</text>
+    <path d="M16,200 Q150,160 284,200" stroke="#8b6914" stroke-width="1.5" fill="none"/>
+    <text x="272" y="198" font-size="8" fill="#555">150</text>
+    <!-- 川 -->
+    <path d="M150,18 Q148,55 150,80 Q152,110 150,135 Q148,160 150,185" stroke="#3399cc" stroke-width="2.5" fill="none"/>
+    <!-- 地名 -->
+    <text x="150" y="34" text-anchor="middle" font-size="9" fill="#444">扇頂</text>
+    <text x="70" y="100" font-size="9" fill="#444">勝沼町</text>
+    <!-- A・B地点 -->
+    <circle cx="100" cy="108" r="4" fill="#c0392b"/>
+    <text x="90" y="106" font-size="10" font-weight="bold" fill="#c0392b">A</text>
+    <circle cx="225" cy="170" r="4" fill="#c0392b"/>
+    <text x="230" y="174" font-size="10" font-weight="bold" fill="#c0392b">B</text>
+    <line x1="100" y1="108" x2="225" y2="170" stroke="#c0392b" stroke-width="1.2" stroke-dasharray="4,2"/>
+    <!-- 出典 -->
+    <text x="150" y="240" text-anchor="middle" font-size="8" fill="#888">出典：国土地理院発行2万5千分の1地形図「石和」をもとに作成</text>
+  </svg>`,
+
+  // 新旧地形図比較（模式）
+  shinkyuu: `<svg viewBox="0 0 300 240" width="285" height="228" xmlns="http://www.w3.org/2000/svg">
+    <rect width="300" height="240" fill="#f5f5e0" rx="6"/>
+    <text x="150" y="14" text-anchor="middle" font-size="11" fill="#555" font-weight="bold">新旧地形図の比較（模式）</text>
+    <!-- 昭和45年（旧） -->
+    <rect x="10" y="22" width="130" height="100" fill="#fff" stroke="#888" stroke-width="1"/>
+    <text x="75" y="34" text-anchor="middle" font-size="9" fill="#555">昭和45年</text>
+    <!-- 旧：田・果樹園・工場 -->
+    <text x="35" y="55" font-size="9" fill="#555">田</text>
+    <line x1="28" y1="48" x2="28" y2="65" stroke="#333" stroke-width="1.5"/>
+    <line x1="38" y1="48" x2="38" y2="65" stroke="#333" stroke-width="1.5"/>
+    <line x1="28" y1="48" x2="38" y2="48" stroke="#333" stroke-width="1.5"/>
+    <line x1="28" y1="57" x2="38" y2="57" stroke="#333" stroke-width="1.5"/>
+    <line x1="28" y1="65" x2="38" y2="65" stroke="#333" stroke-width="1.5"/>
+    <!-- 旧：郵便局（東側） -->
+    <rect x="90" y="52" width="14" height="14" stroke="#333" stroke-width="1.2" fill="none"/>
+    <line x1="90" y1="52" x2="104" y2="66" stroke="#333" stroke-width="1"/>
+    <line x1="104" y1="52" x2="90" y2="66" stroke="#333" stroke-width="1"/>
+    <text x="97" y="80" text-anchor="middle" font-size="8" fill="#555">〒(東)</text>
+    <!-- 旧：鉄道 -->
+    <line x1="15" y1="85" x2="135" y2="85" stroke="#333" stroke-width="2"/>
+    <line x1="20" y1="83" x2="20" y2="87" stroke="#333" stroke-width="1.5"/>
+    <line x1="35" y1="83" x2="35" y2="87" stroke="#333" stroke-width="1.5"/>
+    <line x1="50" y1="83" x2="50" y2="87" stroke="#333" stroke-width="1.5"/>
+    <line x1="65" y1="83" x2="65" y2="87" stroke="#333" stroke-width="1.5"/>
+    <line x1="80" y1="83" x2="80" y2="87" stroke="#333" stroke-width="1.5"/>
+    <line x1="95" y1="83" x2="95" y2="87" stroke="#333" stroke-width="1.5"/>
+    <line x1="110" y1="83" x2="110" y2="87" stroke="#333" stroke-width="1.5"/>
+    <line x1="125" y1="83" x2="125" y2="87" stroke="#333" stroke-width="1.5"/>
+    <text x="75" y="118" text-anchor="middle" font-size="8" fill="#888">（昭和45年）</text>
+    <!-- 矢印 -->
+    <text x="150" y="75" text-anchor="middle" font-size="18" fill="#555">→</text>
+    <!-- 平成10年（新） -->
+    <rect x="160" y="22" width="130" height="100" fill="#fff" stroke="#888" stroke-width="1"/>
+    <text x="225" y="34" text-anchor="middle" font-size="9" fill="#555">平成10年</text>
+    <!-- 新：住宅地（田がなくなる） -->
+    <rect x="172" y="44" width="40" height="34" stroke="#333" stroke-width="1" fill="#eee"/>
+    <text x="192" y="64" text-anchor="middle" font-size="8" fill="#555">住宅地</text>
+    <!-- 新：郵便局（西側に移動） -->
+    <rect x="218" y="52" width="14" height="14" stroke="#333" stroke-width="1.2" fill="none"/>
+    <line x1="218" y1="52" x2="232" y2="66" stroke="#333" stroke-width="1"/>
+    <line x1="232" y1="52" x2="218" y2="66" stroke="#333" stroke-width="1"/>
+    <text x="225" y="80" text-anchor="middle" font-size="8" fill="#555">〒(西)</text>
+    <!-- 新：鉄道 -->
+    <line x1="165" y1="85" x2="285" y2="85" stroke="#333" stroke-width="2"/>
+    <line x1="170" y1="83" x2="170" y2="87" stroke="#333" stroke-width="1.5"/>
+    <line x1="185" y1="83" x2="185" y2="87" stroke="#333" stroke-width="1.5"/>
+    <line x1="200" y1="83" x2="200" y2="87" stroke="#333" stroke-width="1.5"/>
+    <line x1="215" y1="83" x2="215" y2="87" stroke="#333" stroke-width="1.5"/>
+    <line x1="230" y1="83" x2="230" y2="87" stroke="#333" stroke-width="1.5"/>
+    <line x1="245" y1="83" x2="245" y2="87" stroke="#333" stroke-width="1.5"/>
+    <line x1="260" y1="83" x2="260" y2="87" stroke="#333" stroke-width="1.5"/>
+    <line x1="275" y1="83" x2="275" y2="87" stroke="#333" stroke-width="1.5"/>
+    <text x="225" y="118" text-anchor="middle" font-size="8" fill="#888">（平成10年）</text>
+    <!-- 変化の説明 -->
+    <text x="150" y="145" text-anchor="middle" font-size="10" fill="#333" font-weight="bold">【変化のポイント】</text>
+    <text x="150" y="160" text-anchor="middle" font-size="9" fill="#555">・田がなくなり住宅地に変化</text>
+    <text x="150" y="175" text-anchor="middle" font-size="9" fill="#555">・郵便局が東側→西側に移動</text>
+    <!-- 出典 -->
+    <text x="150" y="230" text-anchor="middle" font-size="8" fill="#888">出典：国土地理院発行2万5千分の1地形図「彦根東部」をもとに作成</text>
+  </svg>`,
+
+  // 方位図
+  houi: `<svg viewBox="0 0 200 200" width="190" height="190" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="200" fill="#f5f5e0" rx="6"/>
+    <polygon points="100,20 108,90 100,80 92,90" fill="#222"/>
+    <polygon points="100,180 108,110 100,120 92,110" fill="#888"/>
+    <polygon points="20,100 90,92 80,100 90,108" fill="#888"/>
+    <polygon points="180,100 110,92 120,100 110,108" fill="#888"/>
+    <text x="100" y="16" text-anchor="middle" font-size="14" font-weight="bold" fill="#222">北</text>
+    <text x="100" y="196" text-anchor="middle" font-size="12" fill="#666">南</text>
+    <text x="12" y="104" text-anchor="middle" font-size="12" fill="#666">西</text>
+    <text x="190" y="104" text-anchor="middle" font-size="12" fill="#666">東</text>
+    <text x="162" y="44" font-size="10" fill="#888">北東</text>
+    <text x="24" y="44" font-size="10" fill="#888">北西</text>
+    <text x="156" y="168" font-size="10" fill="#888">南東</text>
+    <text x="20" y="168" font-size="10" fill="#888">南西</text>
+    <line x1="42" y1="42" x2="78" y2="78" stroke="#bbb" stroke-width="1" stroke-dasharray="3,2"/>
+    <line x1="158" y1="42" x2="122" y2="78" stroke="#bbb" stroke-width="1" stroke-dasharray="3,2"/>
+    <line x1="42" y1="158" x2="78" y2="122" stroke="#bbb" stroke-width="1" stroke-dasharray="3,2"/>
+    <line x1="158" y1="158" x2="122" y2="122" stroke="#bbb" stroke-width="1" stroke-dasharray="3,2"/>
+  </svg>`,
+};
+
+
+const UNITS = [{ name:'身近な地域', icon:'🗺️', levels:[
+
+  // ===== BASIC（P94・P95教科書説明 + P96・P97基本問題） =====
+  [
+    {type:'blank',q:'縮尺とは、実際の距離を地図上に（　　　）割合のことである。',
+     choices:['縮めた','広げた','測った','記録した'],ans:0,
+     quote:'縮尺…実際の距離を地図上に縮めた割合。',
+     exp:'縮尺は実際の距離を地図上に「縮めた」割合です。比や分数で示し、地形図のすみに表示されます。'},
+    {type:'def',q:'「縮尺」とはどのようなものか？',
+     choices:['実際の距離を地図上に縮めた割合','地図上の方位を示す記号','海面からの高さを示す線','土地の利用を示す記号'],ans:0,
+     exp:'縮尺とは実際の距離を地図上に縮めた割合です。例：1:25000（2万5千分の1）。'},
+    {type:'blank',q:'実際の距離＝地図上の長さ×縮尺の（　　　）。',
+     choices:['分母','分子','縮尺','面積'],ans:0,
+     quote:'距離の求め方…実際の距離＝地図上の長さ×縮尺の分母。',
+     exp:'実際の距離は「地図上の長さ×縮尺の分母」で求めます。例：2万5千分の1で1cmなら1×25000=25000cm=250m。'},
+    {type:'def',q:'「等高線」とはどのような線か？',
+     choices:['方位を示す線','海面から等しい高さの地点を結んだ線','土地利用の区分を示す線','行政区域の境界線'],ans:1,
+     exp:'等高線とは海面から等しい高さの地点を結んだ線です。土地の高さや傾斜の様子がわかります。'},
+    {type:'ex',q:'図のX・Yのうち、傾斜が急な斜面はどちらか？',
+     svg:'slope',source:'（等高線の読み方・模式図）',
+     choices:['X（等高線の間隔がせまい方）','Y（等高線の間隔が広い方）','両方同じ','判断できない'],ans:0,
+     exp:'等高線の間隔がせまいXの方が傾斜は急です。Yは間隔が広くゆるやかな斜面を示しています。'},
+    {type:'ex',q:'図の等高線が示す谷と尾根について、「谷」の等高線の特徴はどれか？',
+     svg:'tanione',source:'（谷と尾根の等高線・模式図）',
+     choices:['等高線が高い方から低い方へ張り出している','等高線が低い方から高い方へくいこんでいる','等高線の間隔が広い','等高線が丸く閉じている'],ans:1,
+     exp:'等高線が低い方から高い方へくいこんでいるのが谷、高い方から低い方へ張り出しているのが尾根です。'},
+    {type:'blank',q:'地形図は（　　　）の国土地理院が発行している。',
+     choices:['国土交通省','文部科学省','総務省','農林水産省'],ans:0,
+     quote:'地形図…国土交通省の国土地理院が発行。5万分の1、2万5千分の1、1万分の1の地形図。',
+     exp:'地形図は国土交通省の国土地理院が発行しています。5万分の1、2万5千分の1、1万分の1などがあります。'},
+    {type:'blank',q:'方位記号がない場合、地図の（　　　）が北を示す。',
+     choices:['上','下','右','左'],ans:0,
+     quote:'方位…4方位は東西南北。方位記号がない場合、地図の上が北を示す。',
+     exp:'方位記号がない場合は地図の上が北です。8方位や16方位はさらに細かい方位を示します。'},
+    {type:'def',q:'「扇状地」とはどのような地形か？',
+     choices:['川が海や湖に出るところに土砂が堆積した三角形の地形','川が山地から平地へ出るところに土砂が堆積した扇形の地形','川に沿って両岸が階段状になった地形','海岸沿いに形成される平坦な地形'],ans:1,
+     exp:'扇状地は川が山地から平地へ出るところに土砂が堆積した扇形のゆるやかな傾斜地です。扇頂を中心に同心円状の等高線が見られます。'},
+    {type:'ex',q:'図のような弧状（同心円状）の等高線が見られる地形は何か？',
+     svg:'sensho',source:'（扇状地の等高線・模式図）',
+     choices:['三角州','河岸段丘','扇状地','カルデラ'],ans:2,
+     exp:'扇状地は川が山地から平地へ出るところにできる地形で、扇頂を中心に同心円状（弧状）の等高線が見られます。'},
+    {type:'def',q:'「三角州（デルタ）」とはどのような地形か？',
+     choices:['川が山地から平地へ出るところにできる地形','川に沿って両岸が階段状になった地形','川が海や湖に出るところに土砂が堆積した低くて平たんな地形','海岸の侵食によってできた崖'],ans:2,
+     svg:'sankakusu',source:'（三角州の模式図）',
+     exp:'三角州（デルタ）は川が海や湖に出るところに土砂が堆積した三角形の低くて平たんな土地です。等高線はほとんど見られません。'},
+    {type:'def',q:'「河岸段丘」とはどのような地形か？',
+     choices:['川が山地から平地へ出るところにできる扇形の地形','川が海に出るところにできる三角形の地形','川に沿って両岸が階段状になった地形','海岸の波による侵食でできた崖'],ans:2,
+     exp:'河岸段丘は川に沿って両岸が階段状になった地形です。川に沿って等高線が密集したところ（がけ）とまばらなところ（平地）が交互に見られます。'},
+    {type:'blank',q:'扇状地の中央部（扇央）では現在（　　　）の利用が多い。',
+     choices:['果樹園','水田','住宅地','針葉樹林'],ans:0,
+     quote:'扇状地の中央（扇央）はかつては桑畑、現在は果樹園（ぶどう・ももなど）の利用が多い。',
+     exp:'扇状地の中央部（扇央）はかつては桑畑でしたが、現在はぶどう・ももなどの果樹園の利用が多いです。'},
+    {type:'blank',q:'三角州では（　　　）の利用が多い。',
+     choices:['水田','果樹園','茶畑','針葉樹林'],ans:0,
+     quote:'三角州の土地利用…水田の利用が多い。川に沿ってできた自然堤防に住宅地が発達。',
+     exp:'三角州は低くて平たんな土地で水を得やすいため、水田の利用が多いです。'},
+    {type:'blank',q:'地図記号で神社の由来は（　　　）の形である。',
+     choices:['梵字の万','鳥居','歯車','開いた本'],ans:1,
+     quote:'神社は鳥居の形を図案化。',
+     exp:'神社の地図記号は鳥居の形を図案化したものです。寺院は梵字の「万」です。'},
+    {type:'blank',q:'地図記号で工場の由来は（　　　）の形である。',
+     choices:['鳥居','梵字の万','機械の歯車','開いた本'],ans:2,
+     quote:'工場は機械の歯車の形を図案化。',
+     exp:'工場の地図記号は機械の歯車の形を図案化したものです。'},
+    {type:'ex',q:'数値の割合を表すときに使うグラフはどれか？',
+     choices:['棒グラフ','折れ線グラフ','円グラフまたは帯グラフ','ヒストグラム'],ans:2,
+     quote:'円グラフ：全体の数値や量に占める割合を表す場合。',
+     exp:'全体の割合を表すには円グラフまたは帯グラフを使います。棒グラフは数や量の比較、折れ線グラフは数値の変化を表します。'},
+    {type:'def',q:'「文献調査」とはどのような調査方法か？',
+     choices:['実際に現地を歩いて観察する調査','役所や農家などを訪ねて話を聞く調査','地図や統計資料・写真などを利用して調べる調査','地域の変化を映像で記録する調査'],ans:2,
+     exp:'文献調査とは地図や統計資料、写真などを利用して調べる調査方法です。図書館や博物館などで行います。'},
+  ],
+
+  // ===== STANDARD（地図記号 + P98・P99標準問題） =====
+  [
+    {type:'map',q:'この地図記号は何を表しているか？',svg:'chizu_ta',
+     choices:['田','畑','果樹園','茶畑'],ans:0,
+     exp:'「田」の地図記号は稲の切り株の形を図案化したものです。'},
+    {type:'map',q:'この地図記号は何を表しているか？',svg:'chizu_hata',
+     choices:['田','畑','果樹園','くわ畑'],ans:1,
+     exp:'「畑」の地図記号は開いた双葉の形を図案化したものです。'},
+    {type:'map',q:'この地図記号は何を表しているか？',svg:'chizu_kajuen',
+     choices:['茶畑','田','果樹園','広葉樹林'],ans:2,
+     exp:'「果樹園」の地図記号はくだものの丸い形を図案化したものです。'},
+    {type:'map',q:'この地図記号は何を表しているか？',svg:'chizu_shinyou',
+     choices:['広葉樹林','針葉樹林','竹林','果樹園'],ans:1,
+     exp:'「針葉樹林」の地図記号はとがった葉（三角形）の形を図案化したものです。'},
+    {type:'map',q:'この地図記号は何を表しているか？',svg:'chizu_kouyo',
+     choices:['針葉樹林','広葉樹林','果樹園','茶畑'],ans:1,
+     exp:'「広葉樹林」の地図記号は丸みのある広い葉の形を図案化したものです。'},
+    {type:'map',q:'この地図記号は何を表しているか？',svg:'chizu_jinja',
+     choices:['寺院','神社','城跡','老人ホーム'],ans:1,
+     exp:'「神社」の地図記号は鳥居の形を図案化したものです。'},
+    {type:'map',q:'この地図記号は何を表しているか？',svg:'chizu_tera',
+     choices:['神社','寺院','警察署','消防署'],ans:1,
+     exp:'「寺院」の地図記号は梵字の「万（卍）」を図案化したものです。'},
+    {type:'map',q:'この地図記号は何を表しているか？',svg:'chizu_gakko',
+     choices:['図書館','博物館','小・中学校','警察署'],ans:2,
+     exp:'「小・中学校」の地図記号は「文」の字を図案化したものです。高等学校も同じ記号です。'},
+    {type:'map',q:'この地図記号は何を表しているか？',svg:'chizu_yubin',
+     choices:['工場','警察署','郵便局','発電所'],ans:2,
+     exp:'「郵便局」の地図記号は〒マークをもとにしたものです。'},
+    {type:'map',q:'この地図記号は何を表しているか？',svg:'chizu_koji',
+     choices:['発電所','工場','警察署','消防署'],ans:1,
+     exp:'「工場」の地図記号は機械の歯車を図案化したものです。'},
+    {type:'map',q:'この地図記号は何を表しているか？',svg:'chizu_keisatsu',
+     choices:['郵便局','工場','警察署','消防署'],ans:2,
+     exp:'「警察署」の地図記号は警棒の交差を○で囲んだものです。'},
+    {type:'map',q:'この地図記号は何を表しているか？',svg:'chizu_shobo',
+     choices:['警察署','郵便局','病院','消防署'],ans:3,
+     exp:'「消防署」の地図記号はさすまたの形を図案化したものです。'},
+    {type:'map',q:'この地図記号は何を表しているか？',svg:'chizu_sankaku',
+     choices:['水準点','三角点','標高点','電子基準点'],ans:1,
+     exp:'「三角点」（△）の地図記号は独立した山頂などに置かれ、位置の基準となる地点です。'},
+    {type:'map',q:'この地図記号は何を表しているか？',svg:'chizu_suijun',
+     choices:['三角点','電子基準点','水準点','標高点'],ans:2,
+     exp:'「水準点」（●）の地図記号は土地の高低をはかるもとになる地点です。'},
+    {type:'ex',q:'5万分の1の地形図で縦7cm・横10cmの実際の面積はいくらか？',
+     choices:['4.375km²','7km²','14km²','17.5km²'],ans:3,
+     exp:'縦：7(cm)×50000＝3.5(km)。横：10(cm)×50000＝5(km)。面積＝3.5×5＝17.5(km²)。'},
+    {type:'ex',q:'香良洲町（三角州）はどのように形成されたか？',
+     choices:['もともと大きな島があったがけずられた','上流から運ばれた土砂が河口部に堆積した','海底にあった陸地が隆起した','海底の火山が噴火して島になった'],ans:1,
+     exp:'香良洲町は雲出川の河口付近に形成された三角州です。上流から運ばれた土砂が河口部に堆積してできました。'},
+    {type:'ex',q:'2万5千分の1の地形図でA〜B間が9cmのとき、実際の距離は何kmか？',
+     choices:['1.125km','2.25km','4.5km','9km'],ans:1,
+     exp:'9(cm)×25000＝225000(cm)＝2250(m)＝2.25(km)。'},
+    {type:'ex',q:'扇状地の末端部（扇端）に住宅地が多い理由として正しいのはどれか？',
+     choices:['交通の便がよいから','水が湧き出て得やすいから','果樹園に適しているから','平地が広がっているから'],ans:1,
+     exp:'扇状地の末端部（扇端）は水が湧き出るため水を得やすく、住宅地や水田が広がっています。'},
+    {type:'ex',q:'地域調査の手順として正しい順番はどれか？',
+     choices:['テーマ決定→仮説・計画→事前連絡→調査→まとめ・発表','調査→仮説→テーマ決定→まとめ','まとめ→テーマ決定→調査→仮説','事前連絡→テーマ決定→仮説→調査'],ans:0,
+     exp:'地域調査の手順：疑問・課題→仮説・計画→事前連絡・約束→調査→整理・まとめ・発表の順です。'},
+  ],
+
+  // ===== ADVANCED（地形図読図 + P184・P185特集④） =====
+  [
+    {type:'ex',q:'図のA地点からB地点までの地形図上の距離が5cm（2万5千分の1）のとき、実際の距離は何kmか？',
+     svg:'ishiwa_map',source:'出典：国土地理院発行2万5千分の1地形図「石和」をもとに作成',
+     choices:['0.5km','1.25km','2.5km','5km'],ans:1,
+     exp:'5(cm)×25000＝125000(cm)＝1250(m)＝1.25(km)。'},
+    {type:'ex',q:'扇状地であると判断できる等高線の特徴はどれか？',
+     svg:'ishiwa_map',source:'出典：国土地理院発行2万5千分の1地形図「石和」をもとに作成',
+     choices:['等高線がほぼ見られない','等高線が川に沿って密集している','扇頂を中心に同心円状の弧を描く等高線が見られる','等高線が平行に並んでいる'],ans:2,
+     exp:'扇状地は扇頂を中心に同心円状（弧状）の等高線が見られることで判断できます。'},
+    {type:'ex',q:'2万5千分の1の地形図であることを、等高線から判断する根拠はどれか？',
+     choices:['主曲線が5mごと','計曲線（太い線）が50mごと','主曲線が20mごと','計曲線が100mごと'],ans:1,
+     exp:'計曲線（太い線）が50mごとに引かれていることから2万5千分の1と判断できます。5万分の1では計曲線が100mごとです。'},
+    {type:'ex',q:'「△392.2」という地図記号の説明として正しいのはどれか？',
+     choices:['電子基準点でGPS電波の値','標高点で平均海面からの高さ','水準点で市役所からの距離','三角点で平均海面からの高さ（標高）'],ans:3,
+     exp:'△は三角点の地図記号で、横の数値は平均海面からの高さ（標高）を示します。独立した山頂などに置かれ位置の基準となる地点です。'},
+    {type:'ex',q:'図の新旧地形図を比べたとき、変化の様子として正しいのはどれか？',
+     svg:'shinkyuu',source:'出典：国土地理院発行2万5千分の1地形図「彦根東部」をもとに作成',
+     choices:['入江北付近の田や畑が果樹園になった','町役場が移転し消防署ができた','鉄道の上を横切る道路が延長され発電所ができた','鉄道の東側にあった郵便局がなくなり西側に郵便局ができた'],ans:3,
+     exp:'新旧地形図の比較では、鉄道の東側にあった郵便局がなくなり、西側に郵便局が移動した変化が読み取れます。'},
+    {type:'ex',q:'古くからの集落の特徴として地形図から読み取れることはどれか？',
+     choices:['区画整理された碁盤目状の道路','大規模な住宅団地','曲がりくねった道路','学校や病院が多い'],ans:2,
+     exp:'曲がりくねった道路は区画整理前の古い集落の特徴です。新しく開発された地域では碁盤目状の道路が見られます。'},
+    {type:'ex',q:'2万5千分の1の地形図上で3cmの実際の距離は何mか？',
+     choices:['250m','500m','750m','1000m'],ans:2,
+     exp:'3(cm)×25000＝75000(cm)＝750(m)。'},
+    {type:'ex',q:'5万分の1の地形図で縦7cm・横10cmの実際の面積は何km²か？',
+     choices:['4.375km²','7km²','14km²','17.5km²'],ans:3,
+     exp:'縦：7×50000＝3.5km。横：10×50000＝5km。面積＝3.5×5＝17.5(km²)。'},
+    {type:'ex',q:'扇状地で等高線の間隔が広い部分（扇端付近）の特徴はどれか？',
+     choices:['傾斜が急で果樹園が多い','傾斜がゆるやかで水が湧き出しやすく住宅地が多い','傾斜が急で林が多い','傾斜がゆるやかで畑が多い'],ans:1,
+     exp:'扇端（扇状地の末端部）は傾斜がゆるやかで水が湧き出るため、住宅地や水田が広がっています。'},
+    {type:'ex',q:'地域調査の活動の順番として正しいのはどれか？（イ→ア→ウ→エ）',
+     choices:['仮説・計画→事前連絡→現地調査→まとめ・発表','現地調査→仮説→計画→発表','まとめ→テーマ決定→調査→発表','発表→調査→テーマ決定→仮説'],ans:0,
+     exp:'地域調査の手順：疑問・課題出し→仮説・計画（イ）→事前連絡・約束（ア）→現地調査（ウ）→整理・まとめ・発表（エ）。'},
+  ],
+]}];
+
+
+// ===== STATE =====
+let state={
+  points:0,level:1,totalCorrect:0,maxCombo:0,
+  currentUnit:0,currentLevel:0,
+  questions:[],qIndex:0,
+  sessionCorrect:0,sessionWrong:0,sessionPoints:0,
+  sessionCombo:0,sessionMaxCombo:0,
+  sessionWrongQuestions:[],
+  answered:false,reviewMode:false,weakMode:false,
+  timeAttack:false,timerInterval:null,timerLeft:30,
+};
+let unitStats=[{correct:0,total:0}];
+let wrongFreq={};
+let wrongBank=[];
+
+// ===== localStorage =====
+function loadAll(){
+  try{const s=localStorage.getItem('shakai_state');if(s){const p=JSON.parse(s);state.points=p.points||0;state.level=p.level||1;state.totalCorrect=p.totalCorrect||0;state.maxCombo=p.maxCombo||0;}}catch(e){}
+  try{const u=localStorage.getItem('shakai_unitstats');if(u)unitStats=JSON.parse(u);}catch(e){}
+  try{const f=localStorage.getItem('shakai_wrongfreq');if(f)wrongFreq=JSON.parse(f);}catch(e){}
+  try{const w=localStorage.getItem('shakai_wrong');if(w)wrongBank=JSON.parse(w);}catch(e){}
+}
+function saveAll(){
+  try{
+    localStorage.setItem('shakai_state',JSON.stringify({points:state.points,level:state.level,totalCorrect:state.totalCorrect,maxCombo:state.maxCombo}));
+    localStorage.setItem('shakai_unitstats',JSON.stringify(unitStats));
+    localStorage.setItem('shakai_wrongfreq',JSON.stringify(wrongFreq));
+    localStorage.setItem('shakai_wrong',JSON.stringify(wrongBank));
+  }catch(e){}
+}
+function addWrong(q){
+  if(!wrongBank.find(w=>w.q===q.q))wrongBank.push(q);
+  wrongFreq[q.q]=(wrongFreq[q.q]||0)+1;
+}
+function removeWrong(q){wrongBank=wrongBank.filter(w=>w.q!==q.q);}
+
+// ===== UI更新 =====
+function updateHomeStats(){
+  document.getElementById('total-points').textContent=state.points;
+  document.getElementById('player-level').textContent=state.level;
+  document.getElementById('total-correct').textContent=state.totalCorrect;
+  document.getElementById('max-combo-home').textContent=state.maxCombo;
+}
+function updateCharts(){
+  for(let i=0;i<unitStats.length;i++){
+    const s=unitStats[i];
+    const pct=s.total>0?Math.round(s.correct/s.total*100):null;
+    const bar=document.getElementById('bar-'+i);
+    const pctEl=document.getElementById('pct-'+i);
+    if(!bar)continue;
+    if(pct!==null){
+      bar.style.width=pct+'%';
+      pctEl.textContent=pct+'%';
+      bar.style.background=pct>=80?'#4caf50':pct>=60?'#ffd54f':'#e94560';
+    }else{bar.style.width='0%';pctEl.textContent='-%';}
+  }
+}
+function updateReviewUI(){
+  const cnt=wrongBank.length;
+  const btn=document.getElementById('review-home-btn');
+  document.getElementById('review-count').textContent=cnt;
+  btn.classList.toggle('visible',cnt>0);btn.style.display=cnt>0?'':'none';
+  const rb=document.getElementById('review-result-btn');
+  if(rb)rb.style.display=state.sessionWrongQuestions.length>0?'block':'none';
+}
+function updateWeakUI(){
+  const keys=Object.keys(wrongFreq);
+  const card=document.getElementById('weak-card-btn');
+  if(keys.length>=3){
+    card.classList.add('visible');card.style.display='block';
+    document.getElementById('weak-count-text').textContent=Math.min(10,keys.length)+'問 選抜';
+  }else{card.classList.remove('visible');card.style.display='none';}
+}
+function getWeakQuestions(){
+  const sorted=Object.entries(wrongFreq).sort((a,b)=>b[1]-a[1]);
+  const topKeys=sorted.slice(0,10).map(e=>e[0]);
+  const allQ=[];
+  UNITS.forEach(u=>u.levels.forEach(lvl=>lvl.forEach(q=>allQ.push(q))));
+  return allQ.filter(q=>topKeys.includes(q.q));
+}
+
+// ===== SCREENS =====
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+// ===== TIMER =====
+const TIMER_SEC=30;
+function startTimer(){
+  clearTimer();
+  state.timerLeft=TIMER_SEC;
+  const wrap=document.getElementById('timer-bar-wrap');
+  const fill=document.getElementById('timer-bar-fill');
+  wrap.style.display='block';fill.style.width='100%';fill.style.background='#4caf50';
+  state.timerInterval=setInterval(()=>{
+    state.timerLeft-=0.1;
+    const pct=Math.max(0,state.timerLeft/TIMER_SEC*100);
+    fill.style.width=pct+'%';
+    fill.style.background=pct>50?'#4caf50':pct>25?'#ffd54f':'#e94560';
+    if(state.timerLeft<=0){clearTimer();handleTimeout();}
+  },100);
+}
+function clearTimer(){if(state.timerInterval){clearInterval(state.timerInterval);state.timerInterval=null;}}
+function handleTimeout(){
+  if(state.answered)return;
+  state.answered=true;
+  const q=state.questions[state.qIndex];
+  const choicesEl=document.getElementById('choices');
+  const correctIdx=parseInt(choicesEl.dataset.correctIdx);
+  const btns=choicesEl.querySelectorAll('.choice-btn');
+  btns.forEach(b=>b.disabled=true);
+  btns[correctIdx].classList.add('correct');
+  state.sessionWrong++;state.sessionCombo=0;
+  addWrong(q);state.sessionWrongQuestions.push(q);
+  document.getElementById('timeout-msg').classList.add('show');
+  document.getElementById('exp-header').textContent='⏰ 時間切れ！';
+  document.getElementById('exp-text').textContent=q.exp;
+  if(q.quote){const qEl=document.getElementById('q-quote');qEl.textContent=q.quote;qEl.classList.add('show');}
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('next-btn').classList.add('show');
+  document.getElementById('next-btn').textContent=state.qIndex+1>=state.questions.length?'結果を見る →':'次の問題へ →';
+}
+
+// ===== SVG取得 =====
+function getSVGContent(q){
+  if(!q.svg)return null;
+  const kMap={
+    'chizu_ta':CHIZU_KIGO.ta,'chizu_hata':CHIZU_KIGO.hata,
+    'chizu_kajuen':CHIZU_KIGO.kajuen,'chizu_shinyou':CHIZU_KIGO.shinyou,
+    'chizu_kouyo':CHIZU_KIGO.kouyo,'chizu_jinja':CHIZU_KIGO.jinja,
+    'chizu_tera':CHIZU_KIGO.tera,'chizu_gakko':CHIZU_KIGO.gakko,
+    'chizu_yubin':CHIZU_KIGO.yubin,'chizu_koji':CHIZU_KIGO.koji,
+    'chizu_sankaku':CHIZU_KIGO.sankaku,'chizu_suijun':CHIZU_KIGO.suijun,
+    'chizu_keisatsu':CHIZU_KIGO.keisatsu,'chizu_shobo':CHIZU_KIGO.shobo,
+    'chizu_hatsuden':CHIZU_KIGO.hatsuden,'chizu_rojin':CHIZU_KIGO.rojin,
+    'chizu_tosho':CHIZU_KIGO.tosho,'chizu_shiyakusho':CHIZU_KIGO.shiyakusho,
+    'chizu_byoin':CHIZU_KIGO.byoin,'chizu_shiroato':CHIZU_KIGO.shiroato,
+    'slope':CHIKEI_SVG.slope,'sensho':CHIKEI_SVG.sensho,
+    'sankakusu':CHIKEI_SVG.sankakusu,'tanione':CHIKEI_SVG.tanione,
+    'ishiwa_map':CHIKEI_SVG.ishiwa_map,'shinkyuu':CHIKEI_SVG.shinkyuu,
+    'houi':CHIKEI_SVG.houi,
+  };
+  return kMap[q.svg]||null;
+}
+
+// ===== QUIZ =====
+function startQuiz(){
+  clearTimer();
+  const qs=UNITS[state.currentUnit].levels[state.currentLevel];
+  if(!qs||qs.length===0){alert('この単元は近日追加予定です！');return;}
+  state.questions=shuffle([...qs]);
+  state.qIndex=0;state.sessionCorrect=0;state.sessionWrong=0;state.sessionPoints=0;
+  state.sessionCombo=0;state.sessionMaxCombo=0;
+  state.sessionWrongQuestions=[];state.reviewMode=false;state.weakMode=false;
+  showScreen('quiz');renderQuestion();
+}
+function startReview(){
+  if(wrongBank.length===0)return;
+  clearTimer();
+  state.questions=shuffle([...wrongBank]);
+  state.qIndex=0;state.sessionCorrect=0;state.sessionWrong=0;state.sessionPoints=0;
+  state.sessionCombo=0;state.sessionMaxCombo=0;
+  state.sessionWrongQuestions=[];state.reviewMode=true;state.weakMode=false;
+  showScreen('quiz');renderQuestion();
+}
+function startWeak(){
+  const wq=getWeakQuestions();
+  if(wq.length===0)return;
+  clearTimer();
+  state.questions=shuffle(wq);
+  state.qIndex=0;state.sessionCorrect=0;state.sessionWrong=0;state.sessionPoints=0;
+  state.sessionCombo=0;state.sessionMaxCombo=0;
+  state.sessionWrongQuestions=[];state.reviewMode=false;state.weakMode=true;
+  showScreen('quiz');renderQuestion();
+}
+
+function updateQLabel(){
+  const el=document.getElementById('q-level');
+  const lvNames=['BASIC','STANDARD','ADVANCED'];
+  if(state.reviewMode){el.textContent='📝 まちがい復習';el.style.color='#f5a623';}
+  else if(state.weakMode){el.textContent='🎯 苦手ピックアップ';el.style.color='#ffd54f';}
+  else{el.textContent=lvNames[state.currentLevel];el.style.color='';}
+}
+
+function renderQuestion(){
+  const q=state.questions[state.qIndex];
+  const total=state.questions.length;
+  document.getElementById('progress-text').textContent=`${state.qIndex+1} / ${total}`;
+  document.getElementById('progress-fill').style.width=`${(state.qIndex/total)*100}%`;
+  document.getElementById('quiz-score').textContent=`${state.sessionPoints}pt`;
+  updateQLabel();
+
+  const badge=document.getElementById('q-type-badge');
+  const tMap={blank:{cls:'q-type-blank',txt:'🔵 穴埋め'},def:{cls:'q-type-def',txt:'🟡 定義'},ex:{cls:'q-type-ex',txt:'🟢 練習問題'},map:{cls:'q-type-map',txt:'🗺️ 地図記号'}};
+  const t=tMap[q.type]||tMap.ex;
+  badge.className=`q-type-badge ${t.cls}`;badge.textContent=t.txt;
+  document.getElementById('q-text').textContent=q.q;
+
+  const svgWrap=document.getElementById('svg-container');
+  const svgContent=document.getElementById('svg-content');
+  const svgHtml=getSVGContent(q);
+  if(svgHtml){svgContent.innerHTML=svgHtml;svgWrap.classList.add('show');}
+  else{svgContent.innerHTML='';svgWrap.classList.remove('show');}
+
+  const sourceEl=document.getElementById('map-source');
+  if(q.source){sourceEl.textContent=q.source;sourceEl.classList.add('show');}
+  else{sourceEl.textContent='';sourceEl.classList.remove('show');}
+
+  const quoteEl=document.getElementById('q-quote');
+  quoteEl.textContent=q.quote||'';quoteEl.classList.remove('show');
+
+  document.getElementById('timeout-msg').classList.remove('show');
+  document.getElementById('explanation').classList.remove('show');
+  document.getElementById('next-btn').classList.remove('show');
+  document.getElementById('combo-banner').classList.remove('show');
+
+  const choicesEl=document.getElementById('choices');
+  choicesEl.innerHTML='';
+  const isAlpha=q.choices.every(c=>/^[A-D]$/.test(c.trim()));
+  const ordered=isAlpha?q.choices.map((v,i)=>({val:v,orig:i})):shuffleWithIndex(q.choices);
+  choicesEl.dataset.correctIdx=ordered.findIndex(c=>c.orig===q.ans);
+  ordered.forEach((c,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';btn.textContent=q.choices[c.orig];btn.dataset.idx=i;
+    choicesEl.appendChild(btn);
+  });
+
+  state.answered=false;
+  if(state.timeAttack)startTimer();
+  else{clearTimer();document.getElementById('timer-bar-wrap').style.display='none';}
+}
+
+function handleChoice(idx){
+  if(state.answered)return;
+  state.answered=true;
+  clearTimer();
+  const q=state.questions[state.qIndex];
+  const choicesEl=document.getElementById('choices');
+  const correctIdx=parseInt(choicesEl.dataset.correctIdx);
+  const btns=choicesEl.querySelectorAll('.choice-btn');
+  btns.forEach(b=>b.disabled=true);
+  const isCorrect=parseInt(idx)===correctIdx;
+  btns[idx].classList.add(isCorrect?'correct':'wrong');
+  if(!isCorrect)btns[correctIdx].classList.add('correct');
+
+  let basePt=state.reviewMode||state.weakMode?10:(state.currentLevel===0?5:state.currentLevel===1?10:15);
+  if(isCorrect){
+    state.sessionCorrect++;state.sessionCombo++;
+    if(state.sessionCombo>state.sessionMaxCombo)state.sessionMaxCombo=state.sessionCombo;
+    let comboBonus=state.sessionCombo>=5?10:state.sessionCombo>=3?5:0;
+    let timeBonus=state.timeAttack?Math.floor(state.timerLeft/TIMER_SEC*10):0;
+    const gain=basePt+comboBonus+timeBonus;
+    state.sessionPoints+=gain;
+    let msg=`✅ 正解！ +${gain}pt`;
+    if(comboBonus>0)msg+=` (コンボ+${comboBonus})`;
+    if(timeBonus>0)msg+=` (速度+${timeBonus})`;
+    document.getElementById('exp-header').textContent=msg;
+    if(state.sessionCombo>=3){
+      const cb=document.getElementById('combo-banner');
+      cb.textContent=`🔥 ${state.sessionCombo}連続正解！コンボボーナス！`;
+      cb.classList.add('show');
+    }
+    if(state.reviewMode)removeWrong(q);
+    if(!state.reviewMode&&!state.weakMode){unitStats[state.currentUnit].correct++;unitStats[state.currentUnit].total++;}
+  }else{
+    state.sessionWrong++;state.sessionCombo=0;
+    document.getElementById('exp-header').textContent='❌ 不正解';
+    addWrong(q);state.sessionWrongQuestions.push(q);
+    if(!state.reviewMode&&!state.weakMode)unitStats[state.currentUnit].total++;
+  }
+
+  const quoteEl=document.getElementById('q-quote');
+  if(q.quote){quoteEl.textContent=q.quote;quoteEl.classList.add('show');}
+  document.getElementById('quiz-score').textContent=`${state.sessionPoints}pt`;
+  document.getElementById('exp-text').textContent=q.exp;
+  document.getElementById('explanation').classList.add('show');
+  document.getElementById('next-btn').classList.add('show');
+  document.getElementById('next-btn').textContent=state.qIndex+1>=state.questions.length?'結果を見る →':'次の問題へ →';
+}
+
+function nextQuestion(){state.qIndex++;if(state.qIndex>=state.questions.length)showResult();else renderQuestion();}
+
+function showResult(){
+  clearTimer();
+  const total=state.questions.length;
+  const rate=Math.round(state.sessionCorrect/total*100);
+  const oldLevel=state.level;
+  state.points+=state.sessionPoints;state.totalCorrect+=state.sessionCorrect;
+  if(state.sessionMaxCombo>state.maxCombo)state.maxCombo=state.sessionMaxCombo;
+  state.level=Math.floor(state.points/50)+1;
+  const leveledUp=state.level>oldLevel;
+  saveAll();
+  let emoji='😢',title='もう少し！',sub=`正答率${rate}%。もう一度チャレンジ！`;
+  if(rate===100){emoji='🎉';title='パーフェクト！';sub='全問正解！すごい！';}
+  else if(rate>=80){emoji='😊';title='よくできた！';sub=`正答率${rate}%！もう少しで完璧！`;}
+  else if(rate>=60){emoji='🙂';title='まあまあ！';sub=`正答率${rate}%。復習しよう！`;}
+  document.getElementById('result-emoji').textContent=emoji;
+  document.getElementById('result-title').textContent=title;
+  document.getElementById('result-sub').textContent=sub;
+  document.getElementById('result-score').textContent=`+${state.sessionPoints}pt`;
+  document.getElementById('r-correct').textContent=state.sessionCorrect;
+  document.getElementById('r-wrong').textContent=state.sessionWrong;
+  document.getElementById('r-rate').textContent=rate+'%';
+  document.getElementById('r-combo').textContent=state.sessionMaxCombo;
+  const banner=document.getElementById('level-up-banner');
+  if(leveledUp){document.getElementById('new-level').textContent=state.level;banner.classList.add('show');}
+  else banner.classList.remove('show');
+  updateHomeStats();updateCharts();updateReviewUI();updateWeakUI();showScreen('result');
+}
+
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function shuffleWithIndex(arr){const idx=arr.map((v,i)=>({val:v,orig:i}));for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}return idx;}
+
+document.addEventListener('click',function(e){
+  const unitBtn=e.target.closest('.unit-btn');
+  if(unitBtn){state.currentUnit=parseInt(unitBtn.dataset.unit);document.getElementById('level-unit-title').textContent=UNITS[state.currentUnit].name;showScreen('level-select');return;}
+  const levelBtn=e.target.closest('.level-btn');
+  if(levelBtn){state.currentLevel=parseInt(levelBtn.dataset.level);startQuiz();return;}
+  const choiceBtn=e.target.closest('.choice-btn');
+  if(choiceBtn&&!state.answered){handleChoice(parseInt(choiceBtn.dataset.idx));return;}
+  if(e.target.id==='next-btn'){nextQuestion();return;}
+  if(e.target.id==='back-to-home'){showScreen('home');return;}
+  if(e.target.id==='quiz-back'){clearTimer();showScreen('home');updateReviewUI();updateWeakUI();return;}
+  if(e.target.id==='retry-btn'){startQuiz();return;}
+  if(e.target.id==='home-btn-result'){showScreen('home');updateReviewUI();updateWeakUI();return;}
+  if(e.target.id==='review-home-btn'||e.target.closest('#review-home-btn')){startReview();return;}
+  if(e.target.id==='review-result-btn'){startReview();return;}
+  if(e.target.id==='weak-card-btn'||e.target.closest('#weak-card-btn')){startWeak();return;}
+  if(e.target.id==='time-toggle'||e.target.closest('#time-toggle')){
+    const tog=document.getElementById('time-toggle');
+    state.timeAttack=!state.timeAttack;
+    tog.classList.toggle('on',state.timeAttack);return;
+  }
+});
+
+loadAll();updateHomeStats();updateCharts();updateReviewUI();updateWeakUI();
+})();
+</script>
+</body>
+</html>
